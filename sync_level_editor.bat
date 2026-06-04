@@ -3,7 +3,7 @@ rem 文字化け防止のためUTF-8に設定
 chcp 65001 > nul
 
 set "WORKSPACE_FILE=%~dp0level_editor.py"
-set "BLENDER_DIR=C:\Blender Foundation\Blender 4.5\4.5\scripts\addons_core"
+set "BLENDER_DIR=%APPDATA%\Blender Foundation\Blender\4.5\scripts\addons"
 set "BLENDER_FILE=%BLENDER_DIR%\level_editor.py"
 
 echo ==========================================
@@ -18,6 +18,7 @@ set /p choice="実行する処理の番号を入力してください: "
 if "%choice%"=="1" (
     echo.
     echo ワークスペースからBlenderへコピーしています...
+    if not exist "%BLENDER_DIR%" mkdir "%BLENDER_DIR%"
     copy /Y "%WORKSPACE_FILE%" "%BLENDER_FILE%"
     if %ERRORLEVEL% equ 0 (
         echo [成功] Blender側に反映しました。Blender上でアドオンをリロードしてください。

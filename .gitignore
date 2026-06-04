@@ -179,3 +179,44 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+/gakkousuraido
+
+# Visual Studio & C++
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.vcxproj.filters
+
+# Build directories
+x64/
+x86/
+Debug/
+Release/
+[Dd]ebug/
+[Rr]elease/
+
+# Build artifacts and intermediates
+*.tlog
+*.log
+*.idb
+*.pdb
+*.obj
+*.ilk
+*.aps
+*.ncb
+*.opendb
+*.db
+*.sdf
+*.ipch
+*.pch
+*.res
+*.cso
+
+# Temporary files
+*.bak
+*.tmp
+*.temp
+*~

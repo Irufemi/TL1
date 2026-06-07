@@ -33,15 +33,34 @@ void LevelDataLoader::LoadAndDeploy(BaseScene* scene, const std::string& filepat
     // "objects"の全オブジェクトを走査
     if (deserialized.contains("objects")) {
         for (const nlohmann::json& object : deserialized["objects"]) {
+            if (object.contains("disabled")) {
+                bool disabled = object["disabled"].get<bool>();
+                if (disabled) {
+                    continue;
+                }
+            }
+
             LevelData::ObjectData objectData;
             ParseObjectRecursive(object, objectData);
             levelData.objects.push_back(objectData);
         }
     }
 
+    // 既存の LevelRoot があれば破棄する（再ロード対応）
+    for (const auto& obj : scene->GetGameObjects()) {
+        if (obj && obj->GetName() == "LevelRoot") {
+            obj->Destroy();
+        }
+    }
+
+    // 新しい LevelRoot を生成し、シリアライズ（保存）対象外にする
+    auto levelRoot = std::make_shared<GameObject>("LevelRoot");
+    levelRoot->SetDontSave(true);
+    scene->AddGameObject(levelRoot);
+
     // パースしたデータをもとにシーンにデプロイ
     for (const auto& objectData : levelData.objects) {
-        DeployObjectRecursive(scene, objectData, nullptr);
+        DeployObjectRecursive(scene, objectData, levelRoot);
     }
 }
 
@@ -84,6 +103,13 @@ void LevelDataLoader::ParseObjectRecursive(const nlohmann::json& jsonObject, Lev
     // 子オブジェクトの走査
     if (jsonObject.contains("children")) {
         for (const nlohmann::json& child : jsonObject["children"]) {
+            if (child.contains("disabled")) {
+                bool disabled = child["disabled"].get<bool>();
+                if (disabled) {
+                    continue;
+                }
+            }
+
             LevelData::ObjectData childData;
             ParseObjectRecursive(child, childData);
             outData.children.push_back(childData);

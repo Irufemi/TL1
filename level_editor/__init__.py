@@ -4,6 +4,7 @@ from .stretch_vertex import MYADDON_OT_stretch_vertex
 from .create_ico_sphere import MYADDON_OT_create_ico_sphere
 from .file_name import MYADDON_OT_add_filename, OBJECT_PT_file_name
 from .collider import MYADDON_OT_add_collider, OBJECT_PT_collider, DrawCollider
+from .disabled import MYADDON_OT_add_disabled, OBJECT_PT_disabled
 from .export_scene import MYADDON_OT_export_scene
 from .my_menu import TOPBAR_MT_my_menu
 
@@ -31,6 +32,8 @@ classes = (
     OBJECT_PT_file_name,
     MYADDON_OT_add_collider,
     OBJECT_PT_collider,
+    MYADDON_OT_add_disabled,
+    OBJECT_PT_disabled,
 )
 
 #Add-On有効化時コールバック

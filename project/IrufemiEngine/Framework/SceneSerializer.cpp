@@ -17,6 +17,9 @@ bool SceneSerializer::Save(IScene* scene, const std::string& sceneName) {
     for (const auto& obj : gameObjects) {
         // 親がいない（ルートの）オブジェクトのみをシリアライズ（子は再帰的に処理される想定）
         if (obj && !obj->GetParent()) {
+            if (obj->GetDontSave()) {
+                continue;
+            }
             rootArray.push_back(obj->Serialize());
         }
     }

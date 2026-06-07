@@ -82,6 +82,9 @@ public:
     void SetIsActive(bool isActive) { isActive_ = isActive; }
     bool GetIsActive() const { return isActive_; }
 
+    void SetDontSave(bool dontSave) { dontSave_ = dontSave; }
+    bool GetDontSave() const { return dontSave_; }
+
     void SetScene(BaseScene* scene);
     BaseScene* GetScene() const { return scene_; }
 
@@ -116,6 +119,7 @@ private:
     std::string name_ = "GameObject";
     bool isActive_ = true;
     bool isDestroyed_ = false;
+    bool dontSave_ = false;
     BaseScene* scene_ = nullptr;
     
     std::weak_ptr<GameObject> parent_;

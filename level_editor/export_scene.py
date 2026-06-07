@@ -117,6 +117,10 @@ class MYADDON_OT_export_scene(bpy.types.Operator, bpy_extras.io_utils.ExportHelp
             collider["size"] = object["collider_size"].to_list()
             json_object["collider"] = collider
 
+        #カスタムプロパティ 'disabled'
+        if "disabled" in object:
+            json_object["disabled"] = object["disabled"]
+
         #1個分のjsonオブジェクトを親オブジェクトに登録
         data_parent.append(json_object)
 

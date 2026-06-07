@@ -126,16 +126,7 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
+# Blender
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -220,3 +211,63 @@ Release/
 *.tmp
 *.temp
 *~
+
+# Blender
+*.blend1
+*.blend2
+*.blend@
+
+# ====================================================================
+# IrufemiEngine / Project-specific additions (from WP0)
+# ====================================================================
+
+# Build outputs and temporary files
+[Bb]in/
+[Oo]bj/
+generated/
+
+# Exceptions for scene debug folders
+!project/Application/scene/debug/
+!project/Application_solo/scene/debug/
+project/logs/
+
+# 1. Prevent build intermediate files (.obj) from being committed
+**/Debug/*.obj
+**/Release/*.obj
+**/x64/*.obj
+**/x86/*.obj
+
+# 2. Asset editing source folder exclusion
+/project/Application/asset_src/
+/project/Application_solo/asset_src/
+
+# 3. Project-specific existing paths & logs
+DirectXGame/DirectXGame.exe
+DirectXGame/imgui.ini
+**/DirectXTex/Shaders/Compiled/
+/project/externals/DirectXTex/Bin/
+/project/IrufemiEngine/logs/
+/project/Application/logs/
+/project/Application/imgui.ini
+/project/Application_solo/logs/
+/project/Application_solo/imgui.ini
+/project/Application_solo/Dumps/
+
+# 4. AntiGravity / AI tools
+.agents/
+.agent/
+_agents/
+_agent/
+.gemini/
+.copilot/
+.cursor/
+
+# 5. clangd & Debug
+.cache/
+**/.cache/
+/project/compile_commands.json
+/Dumps
+/moto
+/project/Dumps
+/logs/
+/project/Application/Dumps

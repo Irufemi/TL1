@@ -1,0 +1,218 @@
+#include "RenderGraph.h"
+#include "../../../Manager/DrawManager.h"
+#include "../../DirectX/DirectXCommon.h"
+#include <algorithm>
+#include <string>
+
+void RenderGraph::AddPass(std::unique_ptr<IRenderPass> pass) {
+    if (pass) {
+        passes_.push_back(std::move(pass));
+    }
+}
+
+void RenderGraph::InitializeTransientResourceManager(DirectXCommon* dxCommon) {
+    transientResourceManager_ = std::make_unique<TransientResourceManager>();
+    transientResourceManager_->Initialize(dxCommon, 512 * 1024 * 1024); // 512MBへ拡大してOOMを防止
+}
+
+void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
+    auto* cmdList = drawManager->GetDxCommon()->GetCommandList();
+    auto* device = drawManager->GetDxCommon()->GetDevice();
+
+    if (transientResourceManager_) {
+        transientResourceManager_->ResetForFrame();
+    }
+
+    // 1. Compile Phase (全パスの Setup を実行し、リソース要求を収集)
+    RenderGraphBuilder builder;
+    for (size_t i = 0; i < passes_.size(); ++i) {
+        builder.SetCurrentPassIndex(i);
+        passes_[i]->Setup(builder, drawManager, engine);
+    }
+
+    // 2. Resource Allocation Phase (Transient Resource の寿命計算とエイリアシング)
+    struct TransientResourceLifetime {
+        size_t firstPass = static_cast<size_t>(-1);
+        size_t lastPass = 0;
+        uint64_t size = 0;
+        uint64_t alignment = 0;
+        uint64_t offset = 0;
+        ID3D12Resource* physicalResource = nullptr;
+    };
+    
+    const auto& transientDescs = builder.GetTransientDescs();
+    const auto& transientUsages = builder.GetTransientUsages();
+    std::vector<TransientResourceLifetime> lifetimes(transientDescs.size());
+
+    for (size_t i = 0; i < transientDescs.size(); ++i) {
+        auto info = device->GetResourceAllocationInfo(0, 1, &transientDescs[i].desc);
+        lifetimes[i].size = info.SizeInBytes;
+        lifetimes[i].alignment = info.Alignment;
+    }
+
+    for (const auto& usage : transientUsages) {
+        auto& lf = lifetimes[usage.handle];
+        if (lf.firstPass == static_cast<size_t>(-1)) {
+            lf.firstPass = usage.passIndex;
+        }
+        lf.lastPass = (std::max)(lf.lastPass, usage.passIndex);
+    }
+
+    transientPhysicalResources_.resize(transientDescs.size(), nullptr);
+    
+    // RenderTexture をサイズに合わせて拡張（既存のものは再利用）
+    while (transientRenderTextures_.size() < transientDescs.size()) {
+        transientRenderTextures_.push_back(std::make_unique<RenderTexture>());
+    }
+
+    // エイリアシングによるヒープオフセットの決定 (貪欲法)
+    for (size_t i = 0; i < lifetimes.size(); ++i) {
+        if (lifetimes[i].firstPass == static_cast<size_t>(-1)) continue;
+
+        uint64_t requiredSize = lifetimes[i].size;
+        uint64_t alignment = lifetimes[i].alignment;
+        uint64_t bestOffset = 0;
+
+        bool placed = false;
+        while (!placed) {
+            placed = true;
+            for (size_t j = 0; j < i; ++j) {
+                if (lifetimes[j].firstPass == static_cast<size_t>(-1)) continue;
+
+                // 寿命が重なるか？
+                bool overlapTime = (lifetimes[i].firstPass <= lifetimes[j].lastPass) && (lifetimes[i].lastPass >= lifetimes[j].firstPass);
+                if (overlapTime) {
+                    uint64_t startI = bestOffset;
+                    uint64_t endI = startI + requiredSize;
+                    uint64_t startJ = lifetimes[j].offset;
+                    uint64_t endJ = startJ + lifetimes[j].size;
+
+                    // メモリ領域も重なるなら、J の後ろに配置を試みる
+                    if (startI < endJ && endI > startJ) {
+                        bestOffset = (endJ + alignment - 1) & ~(alignment - 1);
+                        placed = false;
+                        break;
+                    }
+                }
+            }
+        }
+        lifetimes[i].offset = bestOffset;
+
+        // PlacedResource の生成
+        if (transientResourceManager_) {
+            const auto& tDesc = transientDescs[i];
+            lifetimes[i].physicalResource = transientResourceManager_->AcquirePlacedResource(
+                tDesc.desc, bestOffset, D3D12_RESOURCE_STATE_COMMON, tDesc.hasClearValue ? &tDesc.clearValue : nullptr
+            );
+            if (lifetimes[i].physicalResource) {
+                std::wstring wname(tDesc.name.begin(), tDesc.name.end());
+                lifetimes[i].physicalResource->SetName(wname.c_str());
+                
+                // RenderTextureラッパーも初期化
+                transientRenderTextures_[i]->InitializeFromResource(drawManager->GetDxCommon(), lifetimes[i].physicalResource, tDesc.desc.Format);
+            }
+        }
+        transientPhysicalResources_[i] = lifetimes[i].physicalResource;
+    }
+
+    // 3. Execution Phase (バリアの発行と描画コマンドの積み込み)
+    for (size_t passIdx = 0; passIdx < passes_.size(); ++passIdx) {
+        auto& pass = passes_[passIdx];
+        std::vector<D3D12_RESOURCE_BARRIER> barriers;
+
+        // このパスで最初に使われる Transient Resource に対するエイリアシングバリア
+        for (size_t i = 0; i < lifetimes.size(); ++i) {
+            if (lifetimes[i].firstPass == passIdx && lifetimes[i].physicalResource) {
+                D3D12_RESOURCE_BARRIER b{};
+                b.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
+                b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                b.Aliasing.pResourceBefore = nullptr;
+                b.Aliasing.pResourceAfter = lifetimes[i].physicalResource;
+                barriers.push_back(b);
+
+                // ステート追跡の初期化（未登録の新規リソースの場合のみ COMMON とする）
+                if (resourceStates_.find(lifetimes[i].physicalResource) == resourceStates_.end()) {
+                    resourceStates_[lifetimes[i].physicalResource] = D3D12_RESOURCE_STATE_COMMON;
+                }
+            }
+        }
+
+        // 通常リソースの Transition バリア
+        for (const auto& usage : builder.GetUsages()) {
+            if (usage.passIndex != passIdx || !usage.resource) continue;
+
+            auto it = resourceStates_.find(usage.resource);
+            D3D12_RESOURCE_STATES currentState = (it != resourceStates_.end()) ? it->second : D3D12_RESOURCE_STATE_COMMON;
+
+            if (currentState != usage.state) {
+                D3D12_RESOURCE_BARRIER b{};
+                b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                b.Transition.pResource = usage.resource;
+                b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                b.Transition.StateBefore = currentState;
+                b.Transition.StateAfter = usage.state;
+                barriers.push_back(b);
+                resourceStates_[usage.resource] = usage.state;
+            }
+        }
+
+        // Transient リソースの Transition バリア
+        for (const auto& usage : transientUsages) {
+            if (usage.passIndex != passIdx) continue;
+            auto* res = lifetimes[usage.handle].physicalResource;
+            if (!res) continue;
+
+            auto it = resourceStates_.find(res);
+            D3D12_RESOURCE_STATES currentState = (it != resourceStates_.end()) ? it->second : D3D12_RESOURCE_STATE_COMMON;
+
+            if (currentState != usage.state) {
+                D3D12_RESOURCE_BARRIER b{};
+                b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                b.Transition.pResource = res;
+                b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+                b.Transition.StateBefore = currentState;
+                b.Transition.StateAfter = usage.state;
+                barriers.push_back(b);
+                resourceStates_[res] = usage.state;
+            }
+        }
+
+        if (!barriers.empty()) {
+            cmdList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+        }
+
+        // パスの実行
+        pass->Execute(drawManager, engine);
+    }
+}
+
+void RenderGraph::ClearPasses() {
+    passes_.clear();
+}
+
+void RenderGraph::ResetStates() {
+    resourceStates_.clear();
+}
+
+void RenderGraph::OnResize() {
+    ResetStates();
+    if (transientResourceManager_) {
+        transientResourceManager_->ClearCache();
+    }
+}
+
+void RenderGraph::RegisterResourceState(ID3D12Resource* resource, D3D12_RESOURCE_STATES state) {
+    if (resource) {
+        resourceStates_[resource] = state;
+    }
+}
+
+#ifdef USE_IMGUI
+void RenderGraph::DebugUI() {
+    if (transientResourceManager_) {
+        transientResourceManager_->DebugUI();
+    }
+}
+#endif

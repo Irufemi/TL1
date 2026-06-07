@@ -1,0 +1,132 @@
+[
+    {
+        "children": [
+            {
+                "children": [],
+                "components": [
+                    {
+                        "data": {
+                            "position": [
+                                0.0,
+                                0.0,
+                                4.46999979019165
+                            ],
+                            "rotation": [
+                                -0.33161255717277527,
+                                -0.3490658104419708,
+                                -0.48869219422340393
+                            ],
+                            "scale": [
+                                0.6319910883903503,
+                                0.5,
+                                0.6500000357627869
+                            ]
+                        },
+                        "type": "TransformComponent"
+                    },
+                    {
+                        "data": {
+                            "modelName": "plane.obj"
+                        },
+                        "type": "MeshRendererComponent"
+                    }
+                ],
+                "isActive": true,
+                "name": "ICO球"
+            }
+        ],
+        "components": [
+            {
+                "data": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        -0.0,
+                        -0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "type": "TransformComponent"
+            },
+            {
+                "data": {
+                    "modelName": "plane.obj"
+                },
+                "type": "MeshRendererComponent"
+            }
+        ],
+        "isActive": true,
+        "name": "Cube"
+    },
+    {
+        "children": [],
+        "components": [
+            {
+                "data": {
+                    "position": [
+                        4.076245307922363,
+                        5.903861999511719,
+                        1.0054539442062378
+                    ],
+                    "rotation": [
+                        -0.6503279805183411,
+                        -1.8663909435272217,
+                        -0.055217139422893524
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        0.9999999403953552
+                    ]
+                },
+                "type": "TransformComponent"
+            }
+        ],
+        "isActive": true,
+        "name": "Light"
+    },
+    {
+        "children": [],
+        "components": [
+            {
+                "data": {
+                    "position": [
+                        7.358891487121582,
+                        4.958309173583984,
+                        -6.925790786743164
+                    ],
+                    "rotation": [
+                        -1.1093189716339111,
+                        -0.8149281740188599,
+                        -4.011331711240018e-09
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "type": "TransformComponent"
+            },
+            {
+                "data": {
+                    "FOV": 0.7853981852531433,
+                    "FarZ": 1000.0,
+                    "MakeActive": true,
+                    "NearZ": 0.10000000149011612
+                },
+                "type": "CameraComponent"
+            }
+        ],
+        "isActive": true,
+        "name": "Camera"
+    }
+]

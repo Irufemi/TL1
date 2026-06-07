@@ -1,0 +1,129 @@
+[
+    {
+        "children": [],
+        "components": [
+            {
+                "data": {
+                    "position": [
+                        640.0,
+                        500.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.4000000059604645,
+                        0.4000000059604645,
+                        1.0
+                    ]
+                },
+                "type": "TransformComponent"
+            },
+            {
+                "data": {
+                    "anchor": [
+                        0.5,
+                        0.5
+                    ],
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "isFlipX": false,
+                    "isFlipY": false,
+                    "isTopMost": false,
+                    "size": [
+                        832.0,
+                        305.0
+                    ],
+                    "texturePath": "resources/UI/start_button.png"
+                },
+                "type": "SpriteRendererComponent"
+            },
+            {
+                "data": {
+                    "Click Anim Duration": 0.20000000298023224,
+                    "Click Color": [
+                        0.20000000298023224,
+                        0.5,
+                        0.800000011920929,
+                        1.0
+                    ],
+                    "Enable Hover Pulse": true,
+                    "Enable Idle Pulse": true,
+                    "Hitbox Scale": [
+                        0.8500000238418579,
+                        0.699999988079071
+                    ],
+                    "Hover Color": [
+                        0.5,
+                        0.800000011920929,
+                        1.0,
+                        1.0
+                    ],
+                    "Load Scene Name": "InGame",
+                    "Normal Color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "Transition Delay": 0.20000000298023224,
+                    "Transition Duration": 1.0,
+                    "Transition Type(0-3)": 2
+                },
+                "type": "ButtonComponent"
+            }
+        ],
+        "isActive": true,
+        "name": "StartButton"
+    },
+    {
+        "children": [],
+        "components": [
+            {
+                "data": {
+                    "position": [
+                        640.0,
+                        200.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                },
+                "type": "TransformComponent"
+            },
+            {
+                "data": {
+                    "alignment": 1,
+                    "baseScale": 120.0,
+                    "color": [
+                        1.0,
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "fontId": "toro_glitch",
+                    "isTopMost": false,
+                    "text": "Title"
+                },
+                "type": "TextRendererComponent"
+            }
+        ],
+        "isActive": true,
+        "name": "TitleText"
+    }
+]

@@ -216,7 +216,7 @@ class MYADDON_OT_export_scene(bpy.types.Operator, bpy_extras.io_utils.ExportHelp
     bl_label = "シーン出力"
     bl_description = "シーン情報をExportします"
     #出力するファイルの拡張子
-    filename_ext = ".json"
+    filename_ext = ".blevel"
 
     def write_and_print(self, file, str):
         print(str)

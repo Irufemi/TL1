@@ -1,0 +1,54 @@
+{
+    "children": [],
+    "components": [
+        {
+            "data": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "type": "TransformComponent"
+        },
+        {
+            "data": {
+                "bottomRadius": 1.0,
+                "currentTypeIndex": 2,
+                "hasBottom": true,
+                "hasTop": true,
+                "height": 1.0,
+                "radius": 1.0,
+                "subdivisions": 16,
+                "topRadius": 1.0,
+                "torusMajorRadius": 1.0,
+                "torusMajorSegments": 32,
+                "torusMinorRadius": 0.30000001192092896,
+                "torusMinorSegments": 16
+            },
+            "type": "PrimitiveRendererComponent"
+        },
+        {
+            "data": {
+                "speed": [
+                    0.0,
+                    1.0,
+                    0.0
+                ]
+            },
+            "type": "RotatorComponent"
+        }
+    ],
+    "isActive": true,
+    "name": "Cube"
+}

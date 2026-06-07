@@ -1,10 +1,10 @@
 @echo off
-rem 文字化け防止のためUTF-8に設定
 chcp 65001 > nul
+rem 文字化け防止のためUTF-8に設定
 
-set "WORKSPACE_FILE=%~dp0level_editor.py"
-set "BLENDER_DIR=%APPDATA%\Blender Foundation\Blender\4.5\scripts\addons"
-set "BLENDER_FILE=%BLENDER_DIR%\level_editor.py"
+set "WORKSPACE_FILE=%~dp0level_editor"
+set "BLENDER_DIR=C:\Blender Foundation\Blender 4.5\4.5\scripts\addons_core"
+set "BLENDER_FILE=%BLENDER_DIR%\level_editor"
 
 echo ==========================================
 echo Blender Level Editor 同期ツール
@@ -18,8 +18,8 @@ set /p choice="実行する処理の番号を入力してください: "
 if "%choice%"=="1" (
     echo.
     echo ワークスペースからBlenderへコピーしています...
-    if not exist "%BLENDER_DIR%" mkdir "%BLENDER_DIR%"
-    copy /Y "%WORKSPACE_FILE%" "%BLENDER_FILE%"
+    if not exist "%BLENDER_FILE%" mkdir "%BLENDER_FILE%"
+    xcopy /Y /E /I "%WORKSPACE_FILE%" "%BLENDER_FILE%"
     if %ERRORLEVEL% equ 0 (
         echo [成功] Blender側に反映しました。Blender上でアドオンをリロードしてください。
     ) else (
@@ -28,7 +28,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     echo.
     echo Blenderからワークスペースへコピーしています...
-    copy /Y "%BLENDER_FILE%" "%WORKSPACE_FILE%"
+    if not exist "%WORKSPACE_FILE%" mkdir "%WORKSPACE_FILE%"
+    xcopy /Y /E /I "%BLENDER_FILE%" "%WORKSPACE_FILE%"
     if %ERRORLEVEL% equ 0 (
         echo [成功] ワークスペースに取り込みました。
     ) else (
